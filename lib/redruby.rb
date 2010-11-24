@@ -1,7 +1,7 @@
 module RedRuby
     class Submission
         attr_accessor   :subreddit, :score, :url, :domain,
-                        :author, :is_self, :downs, :ups, :score
+                        :author, :is_self, :downs, :ups, :score,
                         :created_utc, :num_comments
         
         def initialize()
@@ -31,7 +31,7 @@ module RedRuby
     class User
         attr_accessor 
     end
-        
+end        
 =begin
     class RedRuby
         def self.portray(food)
@@ -42,5 +42,4 @@ module RedRuby
             end
         end
 =end
-    end
-end
+
