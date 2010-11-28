@@ -4,7 +4,7 @@ require 'json'
 module RedRuby
     
     class Parser
-        attr_accessor :json_string, :json_hash, :submissions
+        attr_accessor :json_string, :json_hash, :submissions, :comments
         
         # Init method takes a reddit URL and loads its json page
         def initialize(url)
@@ -22,24 +22,71 @@ module RedRuby
             contents = open(url) { |f| f.read }
             @json_string = contents
             @json_hash = JSON.parse(@json_string)
+            
+
+            @json_hash = @json_hash[0] if @json_hash.class == Array
         end
         
-        def parse_submissions
+        def parse_submissions(hash = @json_hash)
             @submissions = [] # empty array for storing links
             
-            # Process each link submission / comment
-            @json_hash["data"]["children"].each do |item|
+            # Process each link submission
+            hash["data"]["children"].each do |item|
                 if item["kind"] == "t3" # is a submission
                     @submissions << parse_submission(item["data"])
                 end
             end
         end
         
+        # Uses @json_hash to parse comments
+        def parse_comments(hash = @json_hash)
+            @comments = [] # empty array for top level of comments
+            
+            # Process comments w/ recursive helper (for Listing/submission pages)
+            @comments = parse_comments_helper(hash)
+            #pp hash
+        end
+        
+        # Recursive helper for parsing comments
+        def parse_comments_helper(hash)
+            comments_array = []
+            pp hash
+            #pp "Hash kind is #{hash["kind"]}" 
+            
+            hash.each do |item|
+                if item["kind"] == "t1"
+                    comments_array += parse_comment item["data"]
+                elsif item["kind"] == "t3" || item["kind"] == "Listing"
+                    comments_array += parse_comments_helper item["data"]["children"]
+                end
+            end
+=begin            # TODO: each in this "hash" (if it's an array)
+            if hash["kind"] == "t1"
+                comments_array << parse_comment(hash["data"])
+            elsif hash["kind"] == "t3" || hash["kind"] == "Listing"
+                if hash["data"]["children"]
+                    puts "Size is #{hash["data"]["children"].size}"
+                    hash["data"]["children"].each do |item|
+                        puts "item!"
+                        comments_array << parse_comments_helper(item)
+                    end
+                end
+            end
+=end
+            return comments_array
+        end
+        
         private
         
-        # Takes a JSON-generated hash and outputs 
+        # Takes a JSON-generated submission data hash and outputs Submission
+        # object
         def parse_submission(hash)
             return Submission.new(hash)
+        end
+        
+        # Takes a JSON-generated comment data hash and returns Comment object
+        def parse_comment(hash)
+            return Comment.new(hash)
         end
     end
     
@@ -60,11 +107,11 @@ module RedRuby
         
         # Alias upvotes and downvotes
         def upvotes
-            self.ups
+            @ups
         end
         
         def downvotes
-            self.downs
+            @downs
         end
         
         # Returns printable datetime (UTC)
@@ -111,13 +158,79 @@ module RedRuby
     end
     
     class Comment
-        attr_accessor   :body, :body_html, :ups, :downs, :score, :replies, :author
-                        :num_replies
-                        
+        REDDIT_URL_PREFIX = "http://reddit.com"
+        
+        attr_accessor   :body, :subreddit_id, :name, :author, :downs, :created,
+                        :created_utc, :body_html, :levenshtein, :link_id, 
+                        :parent_id, :likes, :replies, :num_replies, :json_hash,
+                        :ups
+                        # TODO: :before and :after?
+        
+        def initialize(comment_hash = {})
+            load_json(comment_hash)
+        end
+        
+        # Alias upvotes and downvotes
+        def upvotes
+            @ups
+        end
+        
+        def downvotes
+            @downs
+        end
+        
+        # Returns printable datetime (UTC)
+        def date
+            Time.at(self.created_utc)
+        end
+        
+        def json_link
+            "#{REDDIT_URL_PREFIX}#{permalink}#{id}.json"
+        end
+        
+        # Updates class member variables from json_hash
+        def load_json(comment_json = @json_hash)
+            @json_hash = comment_json
+            @body = comment_json["body"]
+            @subreddit_id = comment_json["subreddit_id"]
+            @name = comment_json["name"]
+            @author = comment_json["author"]
+            @downs = comment_json["downs"]
+            @created = comment_json["created"]
+            @created_utc = comment_json["created_utc"]
+            @body_html = comment_json["body_html"]
+            @levenshtein = comment_json["levenshtein"]
+            @link_id = comment_json["link_id"]
+            @parent_id = comment_json["parent_id"]
+            @likes = comment_json["likes"]
+            @ups = comment_json["ups"]
+            @id = comment_json["id"]
+            @subreddit = comment_json["subreddit"]
+            @replies_json = comment_json["replies"]
+            
+            load_replies
+        end
+        
+        # Recursive helper for parsing comments
+        def parse_comments_helper(hash)
+            comments_array = []
+            
+            if hash["kind"].to_s.eql? "t1"
+                comments_array << parse_comment(hash["data"])
+            elsif hash["kind"] == "t3"
+                comments_array << parse_comments_helper(hash["data"])
+            elsif hash["kind"] == "Listing"
+                hash["data"]["children"].each do |item|
+                    comments_array << parse_comments_helper(item)
+                end
+            end
+            
+            return comments_array
+        end
     end
     
     class User
-        attr_accessor 
+        attr_accessor :test
     end
 end        
 =begin
