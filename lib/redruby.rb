@@ -4,36 +4,41 @@ require 'json'
 module RedRuby
     
     class Parser
-        attr_accessor :json_string, :json_hash, :submissions, :comments
+        attr_accessor :json_string, :json_hash, :submissions, :comments,
+                      :json_submission_hash  # JSON story hash is initialized when a
+                                        # comments page is being loaded
         
         # Init method takes a reddit URL and loads its json page
         def initialize(url)
             # TODO: Handle case where url does not include .json and
             #       has ?key=value&k2=v2 options in it
             
-            # 1. Construct URL
-            if url.include? ".json"
-                # nothing
-            else
-                url = ("#{url}.json")
-            end
+            # 1. Construct JSON API URL
+            url = ("#{url}.json") unless url.include? ".json"
             
             # 2. Load in remote/local page, parse to hash
             contents = open(url) { |f| f.read }
             @json_string = contents
             @json_hash = JSON.parse(@json_string)
             
-
-            @json_hash = @json_hash[0] if @json_hash.class == Array
+            if submission_comments_page? # order of next two lines matters
+                @json_submission_hash = @json_hash[0]["data"]["children"][0]["data"]
+                @json_hash = @json_hash[1]
+            end
         end
         
         def parse_submissions(hash = @json_hash)
             @submissions = [] # empty array for storing links
             
-            # Process each link submission
-            hash["data"]["children"].each do |item|
-                if item["kind"] == "t3" # is a submission
-                    @submissions << parse_submission(item["data"])
+            if submission_comments_page?
+                # Store single submission
+                @submissions << parse_submission(@json_submission_hash)
+            else
+                # Process each submission in listing
+                hash["data"]["children"].each do |item|
+                    if item["kind"] == "t3" # is a submission
+                        @submissions << parse_submission(item["data"])
+                    end
                 end
             end
         end
@@ -42,38 +47,12 @@ module RedRuby
         def parse_comments(hash = @json_hash)
             @comments = [] # empty array for top level of comments
             
-            # Process comments w/ recursive helper (for Listing/submission pages)
-            @comments = parse_comments_helper(hash)
-            #pp hash
-        end
-        
-        # Recursive helper for parsing comments
-        def parse_comments_helper(hash)
-            comments_array = []
-            pp hash
-            #pp "Hash kind is #{hash["kind"]}" 
-            
-            hash.each do |item|
-                if item["kind"] == "t1"
-                    comments_array += parse_comment item["data"]
-                elsif item["kind"] == "t3" || item["kind"] == "Listing"
-                    comments_array += parse_comments_helper item["data"]["children"]
+            # Process comments
+            hash["data"]["children"].each do |item|
+                if item["kind"] == "t1" # is a comment
+                    @comments << parse_comment(item["data"])
                 end
             end
-=begin            # TODO: each in this "hash" (if it's an array)
-            if hash["kind"] == "t1"
-                comments_array << parse_comment(hash["data"])
-            elsif hash["kind"] == "t3" || hash["kind"] == "Listing"
-                if hash["data"]["children"]
-                    puts "Size is #{hash["data"]["children"].size}"
-                    hash["data"]["children"].each do |item|
-                        puts "item!"
-                        comments_array << parse_comments_helper(item)
-                    end
-                end
-            end
-=end
-            return comments_array
         end
         
         private
@@ -87,6 +66,11 @@ module RedRuby
         # Takes a JSON-generated comment data hash and returns Comment object
         def parse_comment(hash)
             return Comment.new(hash)
+        end
+        
+        # Determines whether we are parsing a submission's comments page
+        def submission_comments_page?
+            @json_hash.class == Array || @json_story_hash
         end
     end
     
@@ -163,7 +147,7 @@ module RedRuby
         attr_accessor   :body, :subreddit_id, :name, :author, :downs, :created,
                         :created_utc, :body_html, :levenshtein, :link_id, 
                         :parent_id, :likes, :replies, :num_replies, :json_hash,
-                        :ups
+                        :ups, :replies_json
                         # TODO: :before and :after?
         
         def initialize(comment_hash = {})
@@ -226,6 +210,18 @@ module RedRuby
             end
             
             return comments_array
+        end
+        
+        # Recursive helper for parsing reply comments
+        def load_replies
+            @replies = []
+            
+            if @replies_json != ""
+                # if we have some replies, create them
+                @replies_json["data"]["children"].each do |comment|
+                    @replies << Comment.new(comment["data"])
+                end
+            end
         end
     end
     
