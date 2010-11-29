@@ -17,14 +17,19 @@ module RedRuby
             url = ("#{url}.json") unless url.include? ".json"
             
             # 2. Load in remote/local page, parse to hash
-            contents = open(url) { |f| f.read }
-            @json_string = contents
-            @json_hash = JSON.parse(@json_string)
+            @json_hash = load_json(url)
             
             if submission_comments_page? # order of next two lines matters
                 @json_submission_hash = @json_hash[0]["data"]["children"][0]["data"]
                 @json_hash = @json_hash[1]
             end
+        end
+        
+        # Loads a JSON file from a local or remote location
+        def load_json(location)
+            contents = open(location) { |f| f.read }
+            @json_string = contents
+            return JSON.parse(@json_string)
         end
         
         def parse_submissions(hash = @json_hash)
@@ -79,7 +84,7 @@ module RedRuby
         
         attr_accessor  :json_hash, :score, :name, :permalink, :over_18,
             :is_self, :ups, :num_comments, :hidden, :likes, :subreddit,
-            :title, :author, :thumbnail, :created_utc, :url, :domain, :id,
+            :title, :author, :thumbnail, :created_utc, :url, :domain, :self_id,
             :selftext, :media, :clicked, :subreddit_id, :selftext_html, 
             :levenshtein, :media_embed, :score, :saved, :created, :downs
         
@@ -103,6 +108,7 @@ module RedRuby
             Time.at(self.created_utc)
         end
         
+        # Returns remote link to submission's json
         def json_link
             "#{REDDIT_URL_PREFIX}#{permalink}.json"
         end
@@ -123,7 +129,7 @@ module RedRuby
             @created_utc = submission_json["created_utc"]
             @url = submission_json["url"]
             @domain = submission_json["domain"]
-            @id = submission_json["id"]
+            @self_id = submission_json["id"]
             @selftext = submission_json["selftext"]
             @media = submission_json["media"] # TODO: what format is this?
             @clicked = submission_json["clicked"]
@@ -147,7 +153,7 @@ module RedRuby
         attr_accessor   :body, :subreddit_id, :name, :author, :downs, :created,
                         :created_utc, :body_html, :levenshtein, :link_id, 
                         :parent_id, :likes, :replies, :num_replies, :json_hash,
-                        :ups, :replies_json
+                        :ups, :replies_json, :self_id, :subreddit
                         # TODO: :before and :after?
         
         def initialize(comment_hash = {})
@@ -168,8 +174,10 @@ module RedRuby
             Time.at(self.created_utc)
         end
         
+        # Returns remote link to comment's json
+        # TODO: make work
         def json_link
-            "#{REDDIT_URL_PREFIX}#{permalink}#{id}.json"
+        #    "#{REDDIT_URL_PREFIX}#{permalink}#{@self_id}.json"
         end
         
         # Updates class member variables from json_hash
@@ -188,28 +196,11 @@ module RedRuby
             @parent_id = comment_json["parent_id"]
             @likes = comment_json["likes"]
             @ups = comment_json["ups"]
-            @id = comment_json["id"]
+            @self_id = comment_json["id"]
             @subreddit = comment_json["subreddit"]
             @replies_json = comment_json["replies"]
             
             load_replies
-        end
-        
-        # Recursive helper for parsing comments
-        def parse_comments_helper(hash)
-            comments_array = []
-            
-            if hash["kind"].to_s.eql? "t1"
-                comments_array << parse_comment(hash["data"])
-            elsif hash["kind"] == "t3"
-                comments_array << parse_comments_helper(hash["data"])
-            elsif hash["kind"] == "Listing"
-                hash["data"]["children"].each do |item|
-                    comments_array << parse_comments_helper(item)
-                end
-            end
-            
-            return comments_array
         end
         
         # Recursive helper for parsing reply comments
@@ -225,18 +216,7 @@ module RedRuby
         end
     end
     
-    class User
-        attr_accessor :test
-    end
-end        
-=begin
-    class RedRuby
-        def self.portray(food)
-            if food.downcase == "broccoli"
-                "Gross!"
-            else
-                "Delicious!"
-            end
-        end
-=end
+    # TODO: class User. Where can we get data on users?
+    
+end
 
