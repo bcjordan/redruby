@@ -1,0 +1,48 @@
+{
+    "body": "I am a top level comment.",
+    "subreddit_id": "t5_2qpol",
+    "name": "t1_c172ye1",
+    "author": "perceived_pattern",
+    "downs": 0,
+    "created": 1290895511.0,
+    "created_utc": 1290895511.0,
+    "body_html": "&lt;div class=\"md\"&gt;&lt;p&gt;I am a top level comment.&lt;/p&gt;&lt;/div&gt;",
+    "levenshtein": null,
+    "link_id": "t3_ecm0n",
+    "parent_id": "t3_ecm0n",
+    "likes": null,
+    "replies": {
+      "kind": "Listing",
+      "data": {
+        "modhash": "",
+        "children": [
+          {
+            "kind": "t1",
+            "data": {
+              "body": "No, *you* are!",
+              "subreddit_id": "t5_2qpol",
+              "name": "t1_c172yew",
+              "author": "perceived_pattern",
+              "downs": 0,
+              "created": 1290895522.0,
+              "created_utc": 1290895522.0,
+              "body_html": "&lt;div class=\"md\"&gt;&lt;p&gt;No, &lt;em&gt;you&lt;/em&gt; are!&lt;/p&gt;&lt;/div&gt;",
+              "levenshtein": null,
+              "link_id": "t3_ecm0n",
+              "parent_id": "t1_c172ye1",
+              "likes": null,
+              "replies": "",
+              "id": "c172yew",
+              "subreddit": "circlejerk",
+              "ups": 1
+            }
+          }
+        ],
+        "after": null,
+        "before": null
+      }
+    },
+    "id": "c172ye1",
+    "subreddit": "circlejerk",
+    "ups": 1
+}
