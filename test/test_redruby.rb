@@ -7,6 +7,7 @@ class RedRubyTest < Test::Unit::TestCase
     SUBMISSIONS_PATH = "test_submissions.json"
     COMMENTS_PATH = "test_comments.json"
     COMMENT_PATH = "test_comment.json"
+    USER_PATH = "test_user.json"
 
     # Helper methods
     
@@ -18,6 +19,27 @@ class RedRubyTest < Test::Unit::TestCase
     end
     
     # Unit tests
+    
+    context "a redruby user" do
+        setup do
+            @user = RedRuby::User.new(load_json(USER_PATH))
+        end
+        
+        should "create a user" do
+            assert @user
+        end
+        
+        should "store information on user" do
+            assert_equal "ProbablyHittingOnYou", @user.name
+            assert_equal 1282848421.0, @user.created
+            assert_equal 1282848421.0, @user.created_utc
+            assert_equal 961, @user.link_karma
+            assert_equal 103559, @user.comment_karma
+            assert_equal false, @user.is_mod
+            assert_equal "4a5h0", @user.user_id # JSON just "id", ruby reserved
+            # assert_equal null, user.has_mod_mail # Anyone want this data?
+        end
+    end
     
     context "a redruby comment" do
         setup do
@@ -119,6 +141,10 @@ class RedRubyTest < Test::Unit::TestCase
             
             should "store each comment and its data" do
                 assert @comments
+            end
+            
+            should "store the parent submission of a comment" do
+                assert_equal "perceived_pattern", @comments[0].submission.author
             end
         end
     end

@@ -5,8 +5,7 @@ module RedRuby
     
     class Parser
         attr_accessor :json_string, :json_hash, :submissions, :comments,
-                      :json_submission_hash  # JSON story hash is initialized when a
-                                        # comments page is being loaded
+                      :json_submission_hash, :parent_submission
         
         # Init method takes a reddit URL and loads its json page
         def initialize(url)
@@ -22,6 +21,8 @@ module RedRuby
             if submission_comments_page? # order of next two lines matters
                 @json_submission_hash = @json_hash[0]["data"]["children"][0]["data"]
                 @json_hash = @json_hash[1]
+                parse_submissions
+                @parent_submission = @submissions[0]
             end
         end
         
@@ -70,12 +71,16 @@ module RedRuby
         
         # Takes a JSON-generated comment data hash and returns Comment object
         def parse_comment(hash)
-            return Comment.new(hash)
+            if submission_comments_page? && @parent_submission
+                return Comment.new(hash, @parent_submission)
+            else
+                return Comment.new(hash)
+            end
         end
         
         # Determines whether we are parsing a submission's comments page
         def submission_comments_page?
-            @json_hash.class == Array || @json_story_hash
+            @json_hash.class == Array || @json_submission_hash
         end
     end
     
@@ -153,11 +158,12 @@ module RedRuby
         attr_accessor   :body, :subreddit_id, :name, :author, :downs, :created,
                         :created_utc, :body_html, :levenshtein, :link_id, 
                         :parent_id, :likes, :replies, :num_replies, :json_hash,
-                        :ups, :replies_json, :self_id, :subreddit
+                        :ups, :replies_json, :self_id, :subreddit, :submission
                         # TODO: :before and :after?
         
-        def initialize(comment_hash = {})
+        def initialize(comment_hash = {}, parent_submission = nil)
             load_json(comment_hash)
+            @submission = parent_submission if parent_submission
         end
         
         # Alias upvotes and downvotes
@@ -210,13 +216,40 @@ module RedRuby
             if @replies_json != ""
                 # if we have some replies, create them
                 @replies_json["data"]["children"].each do |comment|
-                    @replies << Comment.new(comment["data"])
+                    if @submission
+                        @replies << Comment.new(comment["data"], @submission)
+                    else
+                        @replies << Comment.new(comment["data"])
+                    end
                 end
             end
         end
     end
     
-    # TODO: class User. Where can we get data on users?
-    
+    class User
+        attr_accessor   :name, :created, :created_utc, :link_karma, :json_hash,
+                        :comment_karma, :is_mod, :user_id
+        
+        def initialize(user_hash = {})
+            load_json(user_hash)
+        end
+        
+        def load_json(user_json = @json_hash)
+            @json_hash = user_json # Update JSON hash
+            
+            @name = user_json["name"]
+            @created = user_json["created"]
+            @created_utc = user_json["created_utc"]
+            @link_karma = user_json["link_karma"]
+            @comment_karma = user_json["comment_karma"]
+            @is_mod = user_json["is_mod"]
+            @user_id = user_json["id"]
+        end
+        
+        # Returns printable datetime (UTC)
+        def date
+            Time.at(self.created_utc)
+        end
+    end
 end
 
