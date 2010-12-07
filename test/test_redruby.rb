@@ -36,7 +36,7 @@ class RedRubyTest < Test::Unit::TestCase
             assert_equal 961, @user.link_karma
             assert_equal 103559, @user.comment_karma
             assert_equal false, @user.is_mod
-            assert_equal "4a5h0", @user.user_id # JSON just "id", ruby reserved
+            assert_equal "4a5h0", @user.self_id # JSON just "id", ruby reserved
             # assert_equal null, user.has_mod_mail # Anyone want this data?
         end
     end
@@ -127,7 +127,7 @@ class RedRubyTest < Test::Unit::TestCase
                 assert_equal "Sat Nov 27 16:08:34 -0500 2010", submissions[0].date().to_s
                 
                 assert_equal "http://reddit.com/r/AskReddit/comments/ecldw/does_anyone_else_constantly_click_report_instead/.json",
-                             submissions[0].json_link
+                             submissions[0].json_url
                 
                 # TODO: test points, ups, downs, links, and other submission attrs
             end

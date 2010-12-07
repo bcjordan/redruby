@@ -28,6 +28,7 @@ module RedRuby
         
         # Loads a JSON file from a local or remote location
         def load_json(location)
+            # http://www.eggheadcafe.com/software/aspnet/35791813/ruby-idiom-to-retry-open-upto-n-times-before-giving-up.aspx
             contents = open(location) { |f| f.read }
             @json_string = contents
             return JSON.parse(@json_string)
@@ -114,7 +115,7 @@ module RedRuby
         end
         
         # Returns remote link to submission's json
-        def json_link
+        def json_url
             "#{REDDIT_URL_PREFIX}#{permalink}.json"
         end
         
@@ -182,7 +183,7 @@ module RedRuby
         
         # Returns remote link to comment's json
         # TODO: make work
-        def json_link
+        def json_url
         #    "#{REDDIT_URL_PREFIX}#{permalink}#{@self_id}.json"
         end
         
@@ -228,7 +229,7 @@ module RedRuby
     
     class User
         attr_accessor   :name, :created, :created_utc, :link_karma, :json_hash,
-                        :comment_karma, :is_mod, :user_id
+                        :comment_karma, :is_mod, :self_id
         
         def initialize(user_hash = {})
             load_json(user_hash)
@@ -243,7 +244,7 @@ module RedRuby
             @link_karma = user_json["link_karma"]
             @comment_karma = user_json["comment_karma"]
             @is_mod = user_json["is_mod"]
-            @user_id = user_json["id"]
+            @self_id = user_json["id"]
         end
         
         # Returns printable datetime (UTC)
