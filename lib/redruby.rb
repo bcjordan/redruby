@@ -92,7 +92,8 @@ module RedRuby
             :is_self, :ups, :num_comments, :hidden, :likes, :subreddit,
             :title, :author, :thumbnail, :created_utc, :url, :domain, :self_id,
             :selftext, :media, :clicked, :subreddit_id, :selftext_html, 
-            :levenshtein, :media_embed, :score, :saved, :created, :downs
+            :levenshtein, :media_embed, :score, :saved, :created, :downs,
+            :thumbnail_url
         
         def initialize(submission_hash = {})
             # populates all instance variables,
@@ -131,7 +132,8 @@ module RedRuby
             @num_comments = submission_json["num_comments"]
             @title = submission_json["title"]
             @author = submission_json["author"]
-            @thumbnail = submission_json["thumbnail"] # TODO: what format is this?
+            @thumbnail = submission_json["thumbnail"] 
+            #@thumbnail_url = submission_json["thumbnail_url"] if submission_json["thumbnail_url"] # 
             @created_utc = submission_json["created_utc"]
             @url = submission_json["url"]
             @domain = submission_json["domain"]
@@ -182,7 +184,6 @@ module RedRuby
         end
         
         # Returns remote link to comment's json
-        # TODO: make work
         def json_url
         #    "#{REDDIT_URL_PREFIX}#{permalink}#{@self_id}.json"
         end
