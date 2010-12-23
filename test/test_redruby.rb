@@ -5,9 +5,11 @@ class RedRubyTest < Test::Unit::TestCase
     REDDIT_URL = "http://reddit.com/"
     REDDIT_NEW_URL = "http://www.reddit.com/new/.json?sort=new"
     SUBMISSIONS_PATH = "test_submissions.json"
+    SUBMISSION_PATH = "test_submission.json" 
     COMMENTS_PATH = "test_comments.json"
     COMMENT_PATH = "test_comment.json"
     USER_PATH = "test_user.json"
+    USER_NAME = "ProbablyHittingOnYou"
 
     # Helper methods
     
@@ -19,7 +21,58 @@ class RedRubyTest < Test::Unit::TestCase
     end
     
     # Unit tests
-    
+    context "a redruby submission" do
+        setup do
+            @submission = RedRuby::Submission.new(load_json(SUBMISSION_PATH))
+        end
+
+        should "create a submission object" do
+            assert @submission
+        end
+
+        should "store information on submission" do
+            assert_equal "self.AskReddit", @submission.domain
+            assert_equal "AskReddit", @submission.subreddit
+            assert_equal nil, @submission.selftext_html
+            assert_equal "", @submission.selftext
+            assert_equal nil, @submission.likes
+            assert_equal false, @submission.saved
+            assert_equal "ecldw", @submission.self_id
+            assert_equal false, @submission.clicked
+            assert_equal "Pizzaman99", @submission.author
+            assert_equal nil, @submission.media
+            assert_equal 2, @submission.score
+            assert_equal false, @submission.over_18
+            assert_equal false, @submission.hidden
+            assert_equal "", @submission.thumbnail
+            assert_equal "t5_2qh1i", @submission.subreddit_id
+            assert_equal 0, @submission.downs
+            assert_equal 2, @submission.ups
+            assert_equal true, @submission.is_self
+            assert_equal "/r/AskReddit/comments/ecldw/does_anyone_else_constantly_click_report_instead/", @submission.permalink
+            assert_equal "t3_ecldw", @submission.name
+            assert_equal 1290917314.0, @submission.created
+            assert_equal 1290892114.0, @submission.created_utc
+            assert_equal "http://www.reddit.com/comments/ecldw/does_anyone_else_constantly_click_report_instead/", @submission.url
+            assert_equal "Does anyone else constantly click \"report\" instead of \"reply\" by mistake?", @submission.title
+            assert_equal 0, @submission.num_comments
+        end
+    end
+
+    context "a redruby username" do
+        setup do
+            @user = RedRuby::User.new(USER_NAME)
+        end
+
+        should "create a user" do
+            assert @user
+        end
+
+        should "have some user data" do
+            assert_equal "ProbablyHittingOnYou", @user.name
+        end
+    end
+
     context "a redruby user" do
         setup do
             @user = RedRuby::User.new(load_json(USER_PATH))
@@ -37,7 +90,7 @@ class RedRubyTest < Test::Unit::TestCase
             assert_equal 103559, @user.comment_karma
             assert_equal false, @user.is_mod
             assert_equal "4a5h0", @user.self_id # JSON just "id", ruby reserved
-            # assert_equal null, user.has_mod_mail # Anyone want this data?
+            # assert_equal nil, user.has_mod_mail # Anyone want this data?
         end
     end
     

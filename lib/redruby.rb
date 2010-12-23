@@ -1,5 +1,6 @@
-require 'open-uri'
+require 'rubygems'
 require 'json'
+require 'open-uri'
 
 module RedRuby
     
@@ -98,7 +99,7 @@ module RedRuby
         def initialize(submission_hash = {})
             # populates all instance variables,
             # stores submission_hash in @raw_json 
-            load_json(submission_hash)
+            load_hash(submission_hash)
         end
         
         # Alias upvotes and downvotes
@@ -121,7 +122,7 @@ module RedRuby
         end
         
         # Updates class member variables from json_hash
-        def load_json(submission_json = @json_hash)
+        def load_hash(submission_json = @json_hash)
             @json_hash = submission_json
             @score = submission_json["score"]
             @name = submission_json["name"]
@@ -165,7 +166,7 @@ module RedRuby
                         # TODO: :before and :after?
         
         def initialize(comment_hash = {}, parent_submission = nil)
-            load_json(comment_hash)
+            load_hash(comment_hash)
             @submission = parent_submission if parent_submission
         end
         
@@ -189,7 +190,7 @@ module RedRuby
         end
         
         # Updates class member variables from json_hash
-        def load_json(comment_json = @json_hash)
+        def load_hash(comment_json = @json_hash)
             @json_hash = comment_json
             @body = comment_json["body"]
             @subreddit_id = comment_json["subreddit_id"]
@@ -230,13 +231,33 @@ module RedRuby
     
     class User
         attr_accessor   :name, :created, :created_utc, :link_karma, :json_hash,
-                        :comment_karma, :is_mod, :self_id
+                        :comment_karma, :is_mod, :self_id, :json_string
         
+        REDDIT_URL_PREFIX = "http://www.reddit.com/user/"
+        REDDIT_USER_POSTFIX = "/about.json"
+
         def initialize(user_hash = {})
-            load_json(user_hash)
+            if user_hash.class == String
+                load_hash(load_remote_user(user_hash))
+            else
+                load_hash(user_hash)
+            end
         end
         
-        def load_json(user_json = @json_hash)
+        def load_remote_user(username)
+            json_hash = load_json("#{REDDIT_URL_PREFIX}#{username}#{REDDIT_USER_POSTFIX}")
+            return json_hash["data"]
+        end
+
+        # Loads a JSON file from a local or remote location
+        def load_json(location)
+            contents = open(location) { |f| f.read }
+            @json_string = contents
+            return JSON.parse(@json_string)
+        end
+ 
+
+        def load_hash(user_json = @json_hash)
             @json_hash = user_json # Update JSON hash
             
             @name = user_json["name"]
