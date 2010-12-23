@@ -17,7 +17,7 @@ module RedRuby
             url = ("#{url}.json") unless url.include? ".json"
             
             # 2. Load in remote/local page, parse to hash
-            @json_hash = load_json(url)
+            @json_hash = load_json(url, true) # Pause on download
             
             if submission_comments_page? # order of next two lines matters
                 @json_submission_hash = @json_hash[0]["data"]["children"][0]["data"]
@@ -28,10 +28,11 @@ module RedRuby
         end
         
         # Loads a JSON file from a local or remote location
-        def load_json(location)
+        def load_json(location, pause=false)
             # http://www.eggheadcafe.com/software/aspnet/35791813/ruby-idiom-to-retry-open-upto-n-times-before-giving-up.aspx
             contents = open(location) { |f| f.read }
             @json_string = contents
+            sleep 2 if pause # Reddit API admins like this pace
             return JSON.parse(@json_string)
         end
         
@@ -245,14 +246,15 @@ module RedRuby
         end
         
         def load_remote_user(username)
-            json_hash = load_json("#{REDDIT_URL_PREFIX}#{username}#{REDDIT_USER_POSTFIX}")
+            json_hash = load_json("#{REDDIT_URL_PREFIX}#{username}#{REDDIT_USER_POSTFIX}", true)
             return json_hash["data"]
         end
 
         # Loads a JSON file from a local or remote location
-        def load_json(location)
+        def load_json(location, pause=false)
             contents = open(location) { |f| f.read }
             @json_string = contents
+            sleep 2 if pause # Reddit API admins like this pace
             return JSON.parse(@json_string)
         end
  

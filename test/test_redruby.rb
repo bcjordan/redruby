@@ -14,9 +14,10 @@ class RedRubyTest < Test::Unit::TestCase
     # Helper methods
     
     # Loads a JSON file from a local or remote location
-    def load_json(location)
+    def load_json(location, pause=false)
         contents = open(location) { |f| f.read }
         @json_string = contents
+        sleep 2 if pause # Reddit API admins like this pace
         return JSON.parse(@json_string)
     end
     
