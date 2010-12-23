@@ -1,5 +1,13 @@
 https://github.com/radar/guides/blob/master/gem-development.md
 
-Requires the following gems:
+Requires rubygems and the following gems: json, shoulda
+
+Using Ubuntu / Debian apt-get:
 sudo apt-get install rubygems
-sudo gem install json shoulda open-uri
+sudo gem install json shoulda
+
+Using Windows / OS X:
+# Download rubygems from: http://rubygems.org/pages/download
+#   Install:
+ruby setup.rb # In rubygems directory
+gem install json shoulda

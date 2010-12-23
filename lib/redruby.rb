@@ -8,7 +8,7 @@ module RedRuby
         attr_accessor :json_string, :json_hash, :submissions, :comments,
                       :json_submission_hash, :parent_submission
         
-        # Init method takes a reddit URL and loads its json page
+        # Init method takes a reddit URL and loads data from its json page
         def initialize(url)
             # TODO: Handle case where url does not include .json and
             #       has ?key=value&k2=v2 options in it
