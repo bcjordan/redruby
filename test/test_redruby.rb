@@ -58,6 +58,13 @@ class RedRubyTest < Test::Unit::TestCase
             assert_equal "Does anyone else constantly click \"report\" instead of \"reply\" by mistake?", @submission.title
             assert_equal 0, @submission.num_comments
         end
+
+        should "find and download author information" do
+            @submission.get_user
+            assert @submission.user
+            assert_equal @submission.author, @submission.user.name
+        end
+
     end
 
     context "a redruby username" do
@@ -138,6 +145,12 @@ class RedRubyTest < Test::Unit::TestCase
             
             assert_equal "t1_c172yew", reply.name
             assert_equal 0, reply.replies.size
+        end
+
+        should "find and download author information" do
+            @comment.get_user
+            assert @comment.user
+            assert_equal @comment.author, @comment.user.name
         end
     end
     

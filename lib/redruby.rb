@@ -95,7 +95,7 @@ module RedRuby
             :title, :author, :thumbnail, :created_utc, :url, :domain, :self_id,
             :selftext, :media, :clicked, :subreddit_id, :selftext_html, 
             :levenshtein, :media_embed, :score, :saved, :created, :downs,
-            :thumbnail_url
+            :thumbnail_url, :user
         
         def initialize(submission_hash = {})
             # populates all instance variables,
@@ -155,6 +155,11 @@ module RedRuby
             @likes = submission_json["likes"]
             @subreddit = submission_json["subreddit"]
         end
+
+        def get_user
+            @user = User.new(@author)
+        end
+
     end
     
     class Comment
@@ -163,7 +168,8 @@ module RedRuby
         attr_accessor   :body, :subreddit_id, :name, :author, :downs, :created,
                         :created_utc, :body_html, :levenshtein, :link_id, 
                         :parent_id, :likes, :replies, :num_replies, :json_hash,
-                        :ups, :replies_json, :self_id, :subreddit, :submission
+                        :ups, :replies_json, :self_id, :subreddit, :submission,
+                        :user
                         # TODO: :before and :after?
         
         def initialize(comment_hash = {}, parent_submission = nil)
@@ -228,8 +234,12 @@ module RedRuby
                 end
             end
         end
+
+        def get_user
+            @user = User.new(@author)
+        end
     end
-    
+
     class User
         attr_accessor   :name, :created, :created_utc, :link_karma, :json_hash,
                         :comment_karma, :is_mod, :self_id, :json_string
