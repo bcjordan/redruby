@@ -1,3 +1,7 @@
+RedRuby is an API wrapper gem for the Reddit API.
+
+Reddit API reference: https://github.com/reddit/reddit/wiki/API
+
 https://github.com/radar/guides/blob/master/gem-development.md
 
 Requires rubygems and the following gems: json, shoulda
